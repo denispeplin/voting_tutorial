@@ -4,7 +4,9 @@
 
 2. [Full Stack Hello World Voting Ethereum Dapp Tutorial — Part 2](https://medium.com/@mvmurthy/full-stack-hello-world-voting-ethereum-dapp-tutorial-part-2-30b3d335aa1f)
 
-Important note to part2: I've used `Parity` due to `Ropsten` network problems,
+3. [Full Stack Hello World Voting Ethereum Dapp Tutorial — Part 3](https://medium.com/@mvmurthy/full-stack-hello-world-voting-ethereum-dapp-tutorial-part-3-331c2712c9df)
+
+*Important note to part2*: I've used `Parity` due to `Ropsten` network problems,
 so I was able to connect to `Kovan` and it works fine.
 
 To run Parity with IPC enabled, execute:

@@ -1,5 +1,5 @@
 var Voting = artifacts.require("./Voting.sol");
 
 module.exports = function(deployer) {
-  deployer.deploy(Voting,  ['Rama', 'Nick', 'Jose'], {gas: 3700000});
+  deployer.deploy(Voting, 1000, web3.toWei('0.01', 'ether'), ['Rama', 'Nick', 'Jose']);
 };

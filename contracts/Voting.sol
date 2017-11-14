@@ -1,30 +1,91 @@
 pragma solidity ^0.4.18;
 
 contract Voting {
-  mapping (bytes32 => uint8) public votesReceived;
+  struct voter {
+    address voterAddress;
+    uint tokensBought;
+    uint[] tokensUsedPerCandidate;
+  }
+
+  mapping (bytes32 => uint) public votesReceived;
+  mapping (address => voter) public voterInfo;
 
   bytes32[] public candidateList;
 
-  function Voting (bytes32[] candidateNames) public {
+  uint public totalTokens;
+  uint public balanceTokens;
+  uint public tokenPrice;
+
+  function Voting (uint tokens, uint pricePerToken, bytes32[] candidateNames) public {
     candidateList = candidateNames;
+    totalTokens = tokens;
+    balanceTokens = tokens;
+    tokenPrice = pricePerToken;
   }
 
-  function totalVotesFor(bytes32 candidate) view public returns (uint8) {
-    require(validCandidate(candidate));
+  function totalVotesFor(bytes32 candidate) view public returns (uint) {
     return votesReceived[candidate];
   }
 
-  function voteForCandidate(bytes32 candidate) public {
-    require(validCandidate(candidate));
-    votesReceived[candidate] += 1;
-  }
+  function voteForCandidate(bytes32 candidate, uint votesInTokens) public {
+    uint index = indexOfCandidate(candidate);
+    require(index != uint(-1));
 
-  function validCandidate(bytes32 candidate) view public returns (bool) {
-    for(uint8 i = 0; i < candidateList.length; i++) {
-      if (candidateList[i] == candidate) {
-        return true;
+    if (voterInfo[msg.sender].tokensUsedPerCandidate.length == 0) {
+      for(uint i = 0; i < candidateList.length; i++) {
+        voterInfo[msg.sender].tokensUsedPerCandidate.push(0);
       }
     }
-    return false;
+
+    uint availableTokens = voterInfo[msg.sender].tokensBought -
+      totalTokensUsed(voterInfo[msg.sender].tokensUsedPerCandidate);
+    require(availableTokens >= votesInTokens);
+
+    votesReceived[candidate] += votesInTokens;
+
+    voterInfo[msg.sender].tokensUsedPerCandidate[index] += votesInTokens;
+  }
+
+  function totalTokensUsed(uint[] _tokensUsedPerCandidate) private pure returns (uint) {
+    uint sum = 0;
+    for(uint i = 0; i < _tokensUsedPerCandidate.length; i ++) {
+      sum += _tokensUsedPerCandidate[i];
+    }
+    return sum;
+  }
+
+  function indexOfCandidate(bytes32 candidate) view public returns (uint) {
+    for(uint i = 0; i < candidateList.length; i++) {
+      if (candidateList[i] == candidate) {
+        return i;
+      }
+    }
+    return uint(-1);
+  }
+
+  function buy() payable public returns (uint) {
+    uint tokensToBuy = msg.value / tokenPrice;
+    require(tokensToBuy <= balanceTokens);
+    voterInfo[msg.sender].voterAddress = msg.sender;
+    voterInfo[msg.sender].tokensBought += tokensToBuy;
+    balanceTokens -= tokensToBuy;
+    return tokensToBuy;
+  }
+
+  function tokensSold() view public returns (uint) {
+    return totalTokens - balanceTokens;
+  }
+
+  function voterDetails(address user) view public returns (uint, uint[]) {
+    return (voterInfo[user].tokensBought, voterInfo[user].tokensUsedPerCandidate);
+  }
+
+  function allCandidates() view public returns (bytes32[]) {
+    return candidateList;
+  }
+
+  // WARNING: INSECURE FUNCTION. ANYONE COULD CALL THEM. ADD CHECK FOR OWHER HERE
+  function transferTo(address account) public {
+    account.transfer(this.balance);
   }
 }
